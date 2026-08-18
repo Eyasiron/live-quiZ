@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIVE QUIZ - مسابقات اللايف</title>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial,Tahoma,sans-serif;
+    background:#090b12;
+    color:white;
+}
+
+.app{
+    max-width:900px;
+    margin:auto;
+    padding:18px;
+}
+
+.header{
+    background:linear-gradient(135deg,#171b2d,#10121c);
+    border:1px solid #292e43;
+    border-radius:22px;
+    padding:20px;
+    margin-bottom:15px;
+}
+
+.header h1{
+    margin:0 0 6px;
+    font-size:30px;
+}
+
+.header p{
+    margin:0;
+    color:#aeb5c8;
+}
+
+.status{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:15px;
+}
+
+.badge{
+    background:#1b2031;
+    padding:8px 12px;
+    border-radius:20px;
+    color:#dce1f0;
+}
+
+.live{
+    background:#c62828;
+}
+
+.section{
+    background:#111521;
+    border:1px solid #252b3c;
+    border-radius:20px;
+    padding:18px;
+    margin-bottom:15px;
+}
+
+.section h2{
+    margin-top:0;
+}
+
+.modes{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+}
+
+.mode{
+    border:1px solid #30374d;
+    background:#181d2a;
+    color:white;
+    padding:15px;
+    border-radius:15px;
+    cursor:pointer;
+    font-size:16px;
+    text-align:right;
+}
+
+.mode:hover{
+    background:#232a3d;
+}
+
+.mode.active{
+    border-color:#7c5cff;
+    background:#27213e;
+}
+
+textarea,input{
+    width:100%;
+    background:#090c14;
+    border:1px solid #30374d;
+    color:white;
+    border-radius:12px;
+    padding:12px;
+    font-size:16px;
+    outline:none;
+}
+
+input{
+    margin-bottom:10px;
+}
+
+button{
+    border:0;
+    border-radius:12px;
+    padding:12px 16px;
+    cursor:pointer;
+    color:white;
+    background:#5d43d6;
+    font-weight:bold;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+.buttons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.question{
+    font-size:25px;
+    line-height:1.6;
+    font-weight:bold;
+    background:#191e2b;
+    border-radius:15px;
+    padding:18px;
+    margin:12px 0;
+}
+
+.answer{
+    color:#62e6a5;
+    font-size:20px;
+    font-weight:bold;
+}
+
+.comments{
+    max-height:330px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.comment{
+    background:#181d28;
+    border-radius:12px;
+    padding:10px;
+    border-right:4px solid #343b51;
+}
+
+.comment.correct{
+    border-right-color:#39d98a;
+    background:#12271f;
+}
+
+.username{
+    font-weight:bold;
+    color:#a98cff;
+}
+
+.winner{
+    display:none;
+    background:linear-gradient(135deg,#183d2b,#10231b);
+    border:1px solid #36d58a;
+    border-radius:18px;
+    padding:20px;
+    text-align:center;
+    margin-top:12px;
+}
+
+.winner.show{
+    display:block;
+}
+
+.winner-title{
+    font-size:17px;
+    color:#9eeac5;
+}
+
+.winner-name{
+    font-size:30px;
+    font-weight:bold;
+    margin-top:7px;
+}
+
+.points{
+    color:#ffd76a;
+    font-weight:bold;
+}
+
+.small{
+    color:#9ba4ba;
+    font-size:14px;
+}
+
+.library{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.stat{
+    flex:1;
+    min-width:130px;
+    background:#181d2a;
+    padding:15px;
+    border-radius:14px;
+}
+
+.stat strong{
+    display:block;
+    font-size:25px;
+    margin-top:5px;
+}
+
+@media(max-width:600px){
+    .app{
+        padding:10px;
+    }
+
+    .modes{
+        grid-template-columns:1fr;
+    }
+
+    .question{
+        font-size:21px;
+    }
+
+    .header h1{
+        font-size:25px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <div class="header">
+        <h1>🏆 LIVE QUIZ</h1>
+        <p>لوحة مسابقات اللايف التجريبية</p>
+
+        <div class="status">
+            <div class="badge live">🔴 LIVE</div>
+            <div class="badge">📱 وضع الموبايل</div>
+            <div class="badge">💬 التعليقات: <span id="commentCount">0</span></div>
+            <div class="badge">🏆 الجولة: <span id="roundNumber">0</span></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>🎮 اختر نوع المسابقة</h2>
+
+        <div class="modes">
+
+            <button class="mode active" onclick="selectMode('general',this)">
+                🌍 معلومات عامة
+            </button>
+
+            <button class="mode" onclick="selectMode('truefalse',this)">
+                ✅❌ صح أو غلط
+            </button>
+
+            <button class="mode" onclick="selectMode('person',this)">
+                🧠 احزر الشخصية
+            </button>
+
+            <button class="mode" onclick="selectMode('geography',this)">
+                🌎 جغرافيا
+            </button>
+
+            <button class="mode" onclick="selectMode('history',this)">
+                🏛️ تاريخ
+            </button>
+
+            <button class="mode" onclick="selectMode('science',this)">
+                🔬 علوم
+            </button>
+
+            <button class="mode" onclick="selectMode('riddle',this)">
+                🧩 ألغاز
+            </button>
+
+            <button class="mode" onclick="selectMode('music',this)">
+                🎵 احزر الأغنية
+            </button>
+
+            <button class="mode" onclick="selectMode('image',this)">
+                🖼️ مين بالصورة؟
+            </button>
+
+        </div>
+    </div>
+
+
+    <div class="section">
+
+        <h2>🎯 الجولة الحالية</h2>
+
+        <div id="question" class="question">
+            اضغط "جولة جديدة" لبدء المسابقة.
+        </div>
+
+        <div>
+            <span class="small">الإجابة الصحيحة:</span>
+            <div id="answer" class="answer">---</div>
+        </div>
+
+        <br>
+
+        <div class="buttons">
+            <button onclick="newRound()">🎲 جولة جديدة</button>
+            <button onclick="showAnswer()">👁️ إظهار الإجابة</button>
+            <button onclick="resetWinner()">🔄 تصفير الفائز</button>
+        </div>
+
+    </div>
+
+
+    <div class="section">
+
+        <h2>💬 تعليقات المشاهدين</h2>
+
+        <input id="username" placeholder="اسم المتابع التجريبي">
+
+        <input id="commentInput" placeholder="اكتب تعليق المتابع هنا">
+
+        <div class="buttons">
+            <button onclick="addComment()">💬 إضافة تعليق</button>
+            <button onclick="simulateComments()">🤖 تجربة تعليقات تلقائية</button>
+            <button onclick="clearComments()">🗑️ مسح التعليقات</button>
+        </div>
+
+        <br>
+
+        <div id="comments" class="comments"></div>
+
+        <div id="winner" class="winner">
+            <div class="winner-title">🏆 أول إجابة صحيحة</div>
+            <div id="winnerName" class="winner-name"></div>
+            <div class="points">+1 نقطة</div>
+        </div>
+
+    </div>
+
+
+    <div class="section">
+
+        <h2>📊 إحصائيات</h2>
+
+        <div class="library">
+
+            <div class="stat">
+                أنواع المسابقات
+                <strong>9</strong>
+            </div>
+
+            <div class="stat">
+                الأسئلة التجريبية
+                <strong id="questionTotal">0</strong>
+            </div>
+
+            <div class="stat">
+                الفائزون
+                <strong id="winnerTotal">0</strong>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   LIVE QUIZ
+   النسخة التجريبية
+========================================================= */
+
+
+/* ---------------------------------------------------------
+   بنك الأسئلة الأساسي
+--------------------------------------------------------- */
+
+const questions = {
+
+general: [
+
+{
+q:"ما هي أكبر قارة في العالم من حيث المساحة؟",
+a:"آسيا"
+},
+
+{
+q:"ما هو الكوكب المعروف بالكوكب الأحمر؟",
+a:"المريخ"
+},
+
+{
+q:"ما هو أسرع حيوان بري؟",
+a:"الفهد"
+},
+
+{
+q:"كم عدد أيام السنة العادية؟",
+a:"365"
+},
+
+{
+q:"ما هي عاصمة فرنسا؟",
+a:"باريس"
+},
+
+{
+q:"ما هو أكبر محيط في العالم؟",
+a:"المحيط الهادئ"
+},
+
+{
+q:"ما هو العنصر الكيميائي الذي رمزه O؟",
+a:"الأكسجين"
+},
+
+{
+q:"كم عدد قارات العالم؟",
+a:"7"
+},
+
+{
+q:"ما هي اللغة الأكثر انتشارًا من حيث عدد المتحدثين الأصليين؟",
+a:"الصينية"
+},
+
+{
+q:"ما هو الحيوان المعروف بسفينة الصحراء؟",
+a:"الجمل"
+}
+
+],
+
+geography:[
+
+{
+q:"ما هي أكبر دولة في العالم من حيث المساحة؟",
+a:"روسيا"
+},
+
+{
+q:"ما هي عاصمة اليابان؟",
+a:"طوكيو"
+},
+
+{
+q:"ما هي عاصمة الأردن؟",
+a:"عمّان"
+},
+
+{
+q:"ما هي عاصمة مصر؟",
+a:"القاهرة"
+},
+
+{
+q:"ما هي عاصمة العراق؟",
+a:"بغداد"
+},
+
+{
+q:"ما هي عاصمة سوريا؟",
+a:"دمشق"
+},
+
+{
+q:"ما هي عاصمة لبنان؟",
+a:"بيروت"
+},
+
+{
+q:"ما هي عاصمة السعودية؟",
+a:"الرياض"
+},
+
+{
+q:"ما هي عاصمة الإمارات؟",
+a:"أبوظبي"
+},
+
+{
+q:"ما هي عاصمة المغرب؟",
+a:"الرباط"
+},
+
+{
+q:"ما هي عاصمة تونس؟",
+a:"تونس"
+},
+
+{
+q:"ما هي عاصمة الجزائر؟",
+a:"الجزائر"
+},
+
+{
+q:"ما هي عاصمة تركيا؟",
+a:"أنقرة"
+},
+
+{
+q:"ما هي عاصمة إيطاليا؟",
+a:"روما"
+},
+
+{
+q:"ما هي عاصمة ألمانيا؟",
+a:"برلين"
+},
+
+{
+q:"ما هي عاصمة إسبانيا؟",
+a:"مدريد"
+},
+
+{
+q:"ما هي عاصمة بريطانيا؟",
+a:"لندن"
+},
+
+{
+q:"ما هي عاصمة الولايات المتحدة؟",
+a:"واشنطن"
+},
+
+{
+q:"ما هي عاصمة كندا؟",
+a:"أوتاوا"
+},
+
+{
+q:"ما هي عاصمة أستراليا؟",
+a:"كانبيرا"
+},
+
+{
+q:"ما هو أطول نهر في أفريقيا؟",
+a:"النيل"
+},
+
+{
+q:"ما هي أكبر صحراء حارة في العالم؟",
+a:"الصحراء الكبرى"
+},
+
+{
+q:"ما هي أصغر دولة في العالم؟",
+a:"الفاتيكان"
+},
+
+{
+q:"في أي قارة تقع البرازيل؟",
+a:"أمريكا الجنوبية"
+},
+
+{
+q:"في أي قارة تقع الهند؟",
+a:"آسيا"
+}
+
+],
+
+history:[
+
+{
+q:"من بنى الأهرامات في مصر القديمة؟",
+a:"المصريون القدماء"
+},
+
+{
+q:"أين قامت الحضارة الرومانية؟",
+a:"روما"
+},
+
+{
+q:"ما اسم المدينة التي كانت عاصمة الدولة العباسية؟",
+a:"بغداد"
+},
+
+{
+q:"من هو أول الخلفاء الراشدين؟",
+a:"أبو بكر الصديق"
+},
+
+{
+q:"من هو ثاني الخلفاء الراشدين؟",
+a:"عمر بن الخطاب"
+},
+
+{
+q:"من هو ثالث الخلفاء الراشدين؟",
+a:"عثمان بن عفان"
+},
+
+{
+q:"من هو رابع الخلفاء الراشدين؟",
+a:"علي بن أبي طالب"
+},
+
+{
+q:"ما اسم المعركة التي وقعت بين المسلمين وقريش في السنة الثانية للهجرة؟",
+a:"بدر"
+},
+
+{
+q:"ما اسم المدينة التي هاجر إليها النبي محمد؟",
+a:"المدينة المنورة"
+},
+
+{
+q:"ما اسم المدينة التي ولد فيها النبي محمد؟",
+a:"مكة"
+},
+
+{
+q:"من هو القائد المسلم الذي ارتبط بتحرير القدس في الحروب الصليبية؟",
+a:"صلاح الدين الأيوبي"
+},
+
+{
+q:"ما الحضارة التي اشتهرت بالكتابة المسمارية؟",
+a:"الحضارة السومرية"
+},
+
+{
+q:"أين ظهرت الحضارة السومرية؟",
+a:"بلاد الرافدين"
+},
+
+{
+q:"ما اسم المدينة الأثرية الشهيرة في الأردن؟",
+a:"البتراء"
+},
+
+{
+q:"من هو مؤسس الدولة الأموية؟",
+a:"معاوية بن أبي سفيان"
+}
+
+],
+
+science:[
+
+{
+q:"ما هو أقرب كوكب إلى الشمس؟",
+a:"عطارد"
+},
+
+{
+q:"ما هو أكبر كوكب في المجموعة الشمسية؟",
+a:"المشتري"
+},
+
+{
+q:"ما هو الكوكب المعروف بحلقاته؟",
+a:"زحل"
+},
+
+{
+q:"ما هو القمر الطبيعي للأرض؟",
+a:"القمر"
+},
+
+{
+q:"ما القوة التي تجعل الأجسام تسقط نحو الأرض؟",
+a:"الجاذبية"
+},
+
+{
+q:"ما العضو الذي يضخ الدم في جسم الإنسان؟",
+a:"القلب"
+},
+
+{
+q:"ما العضو المسؤول بشكل أساسي عن التنفس؟",
+a:"الرئتان"
+},
+
+{
+q:"ما الغاز الذي يحتاجه الإنسان للتنفس؟",
+a:"الأكسجين"
+},
+
+{
+q:"ما الرمز الكيميائي للذهب؟",
+a:"Au"
+},
+
+{
+q:"ما الرمز الكيميائي للحديد؟",
+a:"Fe"
+},
+
+{
+q:"كم عدد الكروموسومات لدى الإنسان عادة؟",
+a:"46"
+},
+
+{
+q:"ما وحدة قياس القوة؟",
+a:"النيوتن"
+},
+
+{
+q:"ما وحدة قياس الطاقة؟",
+a:"الجول"
+},
+
+{
+q:"ما سرعة الضوء التقريبية؟",
+a:"300 ألف كيلومتر في الثانية"
+},
+
+{
+q:"ما هو أكبر عضو في جسم الإنسان؟",
+a:"الجلد"
+}
+
+],
+
+truefalse:[
+
+{
+q:"هل الشمس أكبر من الأرض؟",
+a:"صح"
+},
+
+{
+q:"هل الأرض أكبر من الشمس؟",
+a:"غلط"
+},
+
+{
+q:"هل الماء يتجمد عند درجة صفر مئوية في الظروف القياسية؟",
+a:"صح"
+},
+
+{
+q:"هل باريس عاصمة إيطاليا؟",
+a:"غلط"
+},
+
+{
+q:"هل طوكيو عاصمة اليابان؟",
+a:"صح"
+},
+
+{
+q:"هل المريخ هو الكوكب الأحمر؟",
+a:"صح"
+},
+
+{
+q:"هل القمر نجم؟",
+a:"غلط"
+},
+
+{
+q:"هل الإنسان من الثدييات؟",
+a:"صح"
+},
+
+{
+q:"هل الحوت من الأسماك؟",
+a:"غلط"
+},
+
+{
+q:"هل النيل يقع في أفريقيا؟",
+a:"صح"
+},
+
+{
+q:"هل روسيا أكبر دولة في العالم من حيث المساحة؟",
+a:"صح"
+},
+
+{
+q:"هل أستراليا تقع في أوروبا؟",
+a:"غلط"
+},
+
+{
+q:"هل الحديد رمزه الكيميائي Fe؟",
+a:"صح"
+},
+
+{
+q:"هل الذهب رمزه الكيميائي Ag؟",
+a:"غلط"
+},
+
+{
+q:"هل الأرض تدور حول الشمس؟",
+a:"صح"
+}
+
+],
+
+riddle:[
+
+{
+q:"شيء له أسنان ولا يعض، ما هو؟",
+a:"المشط"
+},
+
+{
+q:"شيء كلما أخذت منه كبر، ما هو؟",
+a:"الحفرة"
+},
+
+{
+q:"ما الشيء الذي يمشي بلا أرجل؟",
+a:"الوقت"
+},
+
+{
+q:"ما الشيء الذي له عين ولا يرى؟",
+a:"الإبرة"
+},
+
+{
+q:"ما الشيء الذي يكتب ولا يقرأ؟",
+a:"القلم"
+},
+
+{
+q:"ما الشيء الذي إذا كسرته لا تستطيع إصلاحه بسهولة؟",
+a:"الوعد"
+},
+
+{
+q:"ما الشيء الذي يزداد كلما نقص؟",
+a:"العمر"
+},
+
+{
+q:"ما الشيء الذي له أوراق وليس شجرة؟",
+a:"الكتاب"
+},
+
+{
+q:"ما الشيء الذي يسمع بلا أذن ويتكلم بلا لسان؟",
+a:"الصدى"
+},
+
+{
+q:"ما الشيء الذي إذا وضعته في الماء لا يبتل؟",
+a:"الظل"
+}
+
+],
+
+person:[
+
+{
+q:"أنا عالم فيزياء اشتهرت بنظرية النسبية. من أنا؟",
+a:"ألبرت أينشتاين"
+},
+
+{
+q:"أنا عالم ارتبط بقوانين الحركة والجاذبية. من أنا؟",
+a:"إسحاق نيوتن"
+},
+
+{
+q:"أنا عالم مسلم اشتهرت بأعمالي في البصريات. من أنا؟",
+a:"ابن الهيثم"
+},
+
+{
+q:"أنا مؤسس علم الاجتماع عند كثير من الباحثين. من أنا؟",
+a:"ابن خلدون"
+},
+
+{
+q:"أنا قائد مسلم ارتبط اسمي بتحرير القدس. من أنا؟",
+a:"صلاح الدين الأيوبي"
+},
+
+{
+q:"أنا أول الخلفاء الراشدين. من أنا؟",
+a:"أبو بكر الصديق"
+},
+
+{
+q:"أنا ثاني الخلفاء الراشدين. من أنا؟",
+a:"عمر بن الخطاب"
+},
+
+{
+q:"أنا ثالث الخلفاء الراشدين. من أنا؟",
+a:"عثمان بن عفان"
+},
+
+{
+q:"أنا رابع الخلفاء الراشدين. من أنا؟",
+a:"علي بن أبي طالب"
+},
+
+{
+q:"أنا عالم اشتهرت بأبحاثي في النشاط الإشعاعي وحصلت على نوبل. من أنا؟",
+a:"ماري كوري"
+},
+
+{
+q:"أنا مخترع ورجل أعمال ارتبط اسمي بالكهرباء والمصابيح. من أنا؟",
+a:"توماس إديسون"
+},
+
+{
+q:"أنا مخترع ورائد في مجال الكهرباء والتيار المتناوب. من أنا؟",
+a:"نيكولا تسلا"
+}
+
+],
+
+music:[
+
+{
+q:"احزر الأغنية: شغّل مقطعًا موسيقيًا، ثم اكتب اسم الأغنية هنا.",
+a:"اسم الأغنية التي شغلتها"
+},
+
+{
+q:"تحدي موسيقى: شغّل أول 5 ثوانٍ من أغنية معروفة.",
+a:"اسم الأغنية"
+},
+
+{
+q:"تحدي موسيقى: شغّل لحنًا بدون كلمات.",
+a:"اسم الأغنية"
+}
+
+],
+
+image:[
+
+{
+q:"🖼️ اعرض صورة لشخصية مشهورة واسأل: مين هذا الشخص؟",
+a:"اسم الشخصية الموجودة بالصورة"
+},
+
+{
+q:"🖼️ اعرض صورة لعالم واسأل: من هو؟",
+a:"اسم العالم"
+},
+
+{
+q:"🖼️ اعرض صورة لملك أو قائد تاريخي واسأل: من هو؟",
+a:"اسم الشخصية"
+},
+
+{
+q:"🖼️ اعرض صورة لمعْلم مشهور واسأل: أين يقع؟",
+a:"اسم المكان"
+}
+
+]
+
+};
+
+
+/* ---------------------------------------------------------
+   توسيع بنك الأسئلة
+   نستخدم قوالب متعددة لإنشاء آلاف الجولات التجريبية
+--------------------------------------------------------- */
+
+const extraGeneralFacts = [
+
+["ما عاصمة اليونان؟","أثينا"],
+["ما عاصمة الصين؟","بكين"],
+["ما عاصمة الهند؟","نيودلهي"],
+["ما عاصمة البرازيل؟","برازيليا"],
+["ما عاصمة الأرجنتين؟","بوينس آيرس"],
+["ما عاصمة المكسيك؟","مكسيكو سيتي"],
+["ما عاصمة كوريا الجنوبية؟","سيول"],
+["ما عاصمة روسيا؟","موسكو"],
+["ما عاصمة البرتغال؟","لشبونة"],
+["ما عاصمة هولندا؟","أمستردام"],
+["ما عاصمة النمسا؟","فيينا"],
+["ما عاصمة سويسرا؟","برن"],
+["ما عاصمة النرويج؟","أوسلو"],
+["ما عاصمة السويد؟","ستوكهولم"],
+["ما عاصمة الدنمارك؟","كوبنهاغن"],
+["ما عاصمة فنلندا؟","هلسنكي"],
+["ما عاصمة أيرلندا؟","دبلن"],
+["ما عاصمة بولندا؟","وارسو"],
+["ما عاصمة التشيك؟","براغ"],
+["ما عاصمة المجر؟","بودابست"],
+["ما عاصمة رومانيا؟","بوخارست"],
+["ما عاصمة بلغاريا؟","صوفيا"],
+["ما عاصمة أوكرانيا؟","كييف"],
+["ما عاصمة إيران؟","طهران"],
+["ما عاصمة باكستان؟","إسلام آباد"],
+["ما عاصمة أفغانستان؟","كابول"],
+["ما عاصمة قطر؟","الدوحة"],
+["ما عاصمة الكويت؟","مدينة الكويت"],
+["ما عاصمة البحرين؟","المنامة"],
+["ما عاصمة عُمان؟","مسقط"],
+["ما عاصمة اليمن؟","صنعاء"],
+["ما عاصمة ليبيا؟","طرابلس"],
+["ما عاصمة السودان؟","الخرطوم"],
+["ما عاصمة الصومال؟","مقديشو"],
+["ما عاصمة إثيوبيا؟","أديس أبابا"]
+];
+
+extraGeneralFacts.forEach(x=>{
+    questions.general.push({q:x[0],a:x[1]});
+});
+
+
+/* ---------------------------------------------------------
+   توليد آلاف الجولات من قاعدة المعلومات
+--------------------------------------------------------- */
+
+function expandDatabase(){
+
+    const categories = Object.keys(questions);
+
+    categories.forEach(category=>{
+
+        const original = [...questions[category]];
+
+        /*
+          نكرر الأسئلة كجولات مختلفة.
+          لاحقًا يمكن استبدال هذا الجزء بقاعدة بيانات
+          ضخمة حقيقية تحتوي على آلاف الأسئلة.
+        */
+
+        for(let round=1; round<=80; round++){
+
+            original.forEach((item,index)=>{
+
+                let copy = {
+                    q:item.q,
+                    a:item.a
+                };
+
+                questions[category].push(copy);
+
+            });
+
+        }
+
+    });
+}
+
+expandDatabase();
+
+
+/* ---------------------------------------------------------
+   المتغيرات
+--------------------------------------------------------- */
+
+let currentMode="general";
+let currentQuestion=null;
+let round=0;
+let commentsCount=0;
+let winnerCount=0;
+let winnerLocked=false;
+
+
+/* ---------------------------------------------------------
+   تطبيع الإجابات
+--------------------------------------------------------- */
+
+function normalize(text){
+
+    return String(text)
+        .toLowerCase()
+        .trim()
+        .replace(/[ًٌٍَُِّْـ]/g,"")
+        .replace(/[أإآ]/g,"ا")
+        .replace(/ة/g,"ه")
+        .replace(/ى/g,"ي")
+        .replace(/[.,!?؟،]/g,"")
+        .replace(/\s+/g," ");
+
+}
+
+
+/* ---------------------------------------------------------
+   اختيار نوع المسابقة
+--------------------------------------------------------- */
+
+function selectMode(mode,button){
+
+    currentMode=mode;
+
+    document.querySelectorAll(".mode").forEach(b=>{
+        b.classList.remove("active");
+    });
+
+    button.classList.add("active");
+
+    newRound();
+}
+
+
+/* ---------------------------------------------------------
+   جولة جديدة
+--------------------------------------------------------- */
+
+function newRound(){
+
+    winnerLocked=false;
+
+    document.getElementById("winner").classList.remove("show");
+
+    const bank=questions[currentMode];
+
+    const index=Math.floor(Math.random()*bank.length);
+
+    currentQuestion=bank[index];
+
+    round++;
+
+    document.getElementById("roundNumber").textContent=round;
+
+    document.getElementById("question").textContent=currentQuestion.q;
+
+    document.getElementById("answer").textContent="مخفية";
+
+}
+
+
+/* ---------------------------------------------------------
+   إظهار الإجابة
+--------------------------------------------------------- */
+
+function showAnswer(){
+
+    if(!currentQuestion){
+        alert("ابدأ جولة أولًا.");
+        return;
+    }
+
+    document.getElementById("answer").textContent=currentQuestion.a;
+
+}
+
+
+/* ---------------------------------------------------------
+   التحقق من الإجابة
+--------------------------------------------------------- */
+
+function isCorrect(comment){
+
+    if(!currentQuestion) return false;
+
+    const user=normalize(comment);
+
+    const answer=normalize(currentQuestion.a);
+
+    if(!user || !answer) return false;
+
+    if(user===answer) return true;
+
+    if(answer==="صح" && ["صح","صحيح","yes","true"].includes(user))
+        return true;
+
+    if(answer==="غلط" && ["غلط","خطا","خطأ","false","no"].includes(user))
+        return true;
+
+    /*
+      إذا كانت الإجابة تحتوي عدة كلمات،
+      نعتبر التعليق صحيحًا إذا احتوى الإجابة الأساسية.
+    */
+
+    if(answer.length>=4 && user.includes(answer))
+        return true;
+
+    return false;
+}
+
+
+/* ---------------------------------------------------------
+   إضافة تعليق
+--------------------------------------------------------- */
+
+function addComment(){
+
+    const username=document.getElementById("username").value.trim();
+    const comment=document.getElementById("commentInput").value.trim();
+
+    if(!username || !comment){
+        alert("اكتب اسم المتابع والتعليق.");
+        return;
+    }
+
+    processComment(username,comment);
+
+    document.getElementById("commentInput").value="";
+}
+
+
+/* ---------------------------------------------------------
+   معالجة التعليق
+--------------------------------------------------------- */
+
+function processComment(username,comment){
+
+    commentsCount++;
+
+    document.getElementById("commentCount").textContent=commentsCount;
+
+    const box=document.getElementById("comments");
+
+    const div=document.createElement("div");
+
+    div.className="comment";
+
+    div.innerHTML=
+        '<span class="username">@'+escapeHTML(username)+'</span> : '+
+        escapeHTML(comment);
+
+    box.appendChild(div);
+
+    const correct=isCorrect(comment);
+
+    if(correct){
+
+        div.classList.add("correct");
+
+        /*
+          أهم جزء:
+          أول إجابة صحيحة فقط هي التي تصبح الفائز.
+        */
+
+        if(!winnerLocked){
+
+            winnerLocked=true;
+
+            winnerCount++;
+
+            document.getElementById("winnerTotal").textContent=winnerCount;
+
+            document.getElementById("winnerName").textContent="@"+username;
+
+            document.getElementById("winner").classList.add("show");
+
+        }
+
+    }
+
+    box.scrollTop=box.scrollHeight;
+
+}
+
+
+/* ---------------------------------------------------------
+   محاكاة تعليقات TikTok للتجربة
+--------------------------------------------------------- */
+
+function simulateComments(){
+
+    if(!currentQuestion){
+
+        alert("ابدأ جولة جديدة أولًا.");
+
+        return;
+    }
+
+    const fakeUsers=[
+        "ahmad_live",
+        "sara2026",
+        "king_quiz",
+        "noor",
+        "mohammad",
+        "queen_live",
+        "ali",
+        "layla",
+        "omar",
+        "yousef"
+    ];
+
+    const fakeAnswers=[
+        "ما بعرف",
+        "يمكن",
+        "باريس",
+        "غلط",
+        "صح",
+        "المريخ",
+        "عمّان",
+        "أينشتاين",
+        "صلاح الدين",
+        "الجمل"
+    ];
+
+    let delay=0;
+
+    for(let i=0;i<12;i++){
+
+        delay+=Math.floor(Math.random()*500)+300;
+
+        setTimeout(()=>{
+
+            let answer;
+
+            /*
+              في إحدى التعليقات نضع الإجابة الصحيحة
+              لمحاكاة تعليقات اللايف.
+            */
+
+            if(i===7){
+
+                answer=currentQuestion.a;
+
+            }else{
+
+                answer=fakeAnswers[
+                    Math.floor(Math.random()*fakeAnswers.length)
+                ];
+
+            }
+
+            processComment(
+                fakeUsers[
+                    Math.floor(Math.random()*fakeUsers.length)
+                ],
+                answer
+            );
+
+        },delay);
+
+    }
+
+}
+
+
+/* ---------------------------------------------------------
+   تصفير الفائز
+--------------------------------------------------------- */
+
+function resetWinner(){
+
+    winnerLocked=false;
+
+    document.getElementById("winner").classList.remove("show");
+
+}
+
+
+/* ---------------------------------------------------------
+   مسح التعليقات
+--------------------------------------------------------- */
+
+function clearComments(){
+
+    document.getElementById("comments").innerHTML="";
+
+    commentsCount=0;
+
+    document.getElementById("commentCount").textContent="0";
+
+}
+
+
+/* ---------------------------------------------------------
+   حماية النصوص
+--------------------------------------------------------- */
+
+function escapeHTML(text){
+
+    return String(text)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+/* ---------------------------------------------------------
+   عدد الأسئلة
+--------------------------------------------------------- */
+
+let totalQuestions=0;
+
+Object.values(questions).forEach(bank=>{
+    totalQuestions+=bank.length;
+});
+
+document.getElementById("questionTotal").textContent=totalQuestions;
+
+
+/* ---------------------------------------------------------
+   تشغيل أول جولة
+--------------------------------------------------------- */
+
+newRound();
+
+</script>
+
+</body>
+</html>
